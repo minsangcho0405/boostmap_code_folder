@@ -84,7 +84,6 @@ def run_ttest(train_df, label_col="활성화_라벨_1년후"):
 # train으로 로지스틱회귀 학습, test로 AUC/F1 평가
 def train_and_evaluate(df, label_col="활성화_라벨_1년후"):
     train = df[(df["data_split"] == "train") & (df["활성화_현재상태"] == 0)]
-    val = df[(df["data_split"] == "validation") & (df["활성화_현재상태"] == 0)]
     test = df[(df["data_split"] == "test") & (df["활성화_현재상태"] == 0)]
 
     def fit_eval(feats, tr, ev):
