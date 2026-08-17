@@ -12,10 +12,7 @@ pd.set_option("display.width", 220)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) if "__file__" in globals() else os.getcwd()
 
-FINAL_FEATURES = [
-    "매출_YoY_윈저화(%)",
-]
-
+# t검정 탐색 대상 후보 피처 전체(18개)
 ALL_CANDIDATE_FEATURES = {
     "매출_YoY_윈저화(%)": "매출 YoY(윈저화)",
     "매출_모멘텀": "매출 모멘텀",
@@ -38,6 +35,7 @@ ALL_CANDIDATE_FEATURES = {
 }
 
 
+# 두 집단 간 효과크기(Cohen's d) 계산
 def cohens_d(a, b):
     na, nb = len(a), len(b)
     va, vb = a.var(ddof=1), b.var(ddof=1)
@@ -45,6 +43,7 @@ def cohens_d(a, b):
     return (a.mean() - b.mean()) / pooled_sd if pooled_sd > 0 else np.nan
 
 
+# 마스터 학습데이터 로드 및 컬럼명 정리
 def load_historical_data():
     target_file = os.path.join(BASE_DIR, "데이터_최종_활성화라벨_CAGR규모필터_4.xlsx")
 
@@ -66,6 +65,7 @@ def load_historical_data():
     return master
 
 
+# 후보 피처별 t검정(활성화 vs 비활성화 그룹 비교, Bonferroni 보정)
 def run_ttest(train_df, label_col="활성화_라벨_1년후"):
     results = []
     n_features = len(ALL_CANDIDATE_FEATURES)
@@ -89,6 +89,7 @@ def run_ttest(train_df, label_col="활성화_라벨_1년후"):
     return pd.DataFrame(results)
 
 
+# train으로 로지스틱회귀 학습, test로 AUC/F1 평가
 def train_and_evaluate(df, label_col="활성화_라벨_1년후"):
     train = df[(df["data_split"] == "train") & (df["활성화_현재상태"] == 0)]
     val = df[(df["data_split"] == "validation") & (df["활성화_현재상태"] == 0)]
@@ -110,6 +111,7 @@ def train_and_evaluate(df, label_col="활성화_라벨_1년후"):
     return model_official, sc_official, auc_test_official, f1_test_official
 
 
+# 현재 비활성화 상권(apply 대상) 예측확률 산출 및 순위화
 def predict_apply_target(master_df, model, scaler):
     candidates = master_df[master_df["data_split"] == "apply_최종예측대상"].copy()
     candidates = candidates.dropna(subset=FINAL_FEATURES)
@@ -122,10 +124,19 @@ def predict_apply_target(master_df, model, scaler):
     return ranking[["순위", "상권_코드", "상권_코드_명", "예측확률"] + FINAL_FEATURES]
 
 
+# 비교모델 채택 피처(1개) — 6개 피처 모델과의 성능 비교용 베이스라인.
+# t검정 결과 Cohen's d가 가장 큰 단일 피처(매출_YoY_윈저화)만 단독으로 사용함.
+FINAL_FEATURES = [
+    "매출_YoY_윈저화(%)",
+]
+
+
 if __name__ == "__main__":
+    # 1) 데이터 로드
     print("1) 학습용 이력 마스터 데이터 로드...")
     full = load_historical_data()
 
+    # 2) t검정 (결과를 참고해 위 FINAL_FEATURES를 선정함) + 모델 학습/평가
     print("2) 통계 검증(t-검정) 및 모델 학습...")
     train_for_ttest = full[(full["data_split"] == "train") & (full["활성화_현재상태"] == 0)]
     ttest_result = run_ttest(train_for_ttest)
@@ -141,6 +152,7 @@ if __name__ == "__main__":
     print(f"AUC: {auc_test:.4f}")
     print(f"F1 : {f1_test:.4f}")
 
+    # 3) 예측 및 저장
     print("\n3) apply_최종예측대상 예측 순위 산출 중...")
     ranking_df = predict_apply_target(full, model, scaler)
 
