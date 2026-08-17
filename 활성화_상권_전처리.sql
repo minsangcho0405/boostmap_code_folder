@@ -1,3 +1,4 @@
+-- 외식업 10종 필터링
 WITH filtered_raw AS (
     SELECT
         상권_코드,
@@ -11,6 +12,7 @@ WITH filtered_raw AS (
     )
 ),
 
+-- 상권·분기 단위 매출 집계
 district_quarter AS (
     SELECT
         상권_코드,
@@ -21,6 +23,7 @@ district_quarter AS (
     GROUP BY 상권_코드, 기준_년분기_코드
 ),
 
+-- 분기순번 정수화
 with_seq AS (
     SELECT
         dq.*,
@@ -28,6 +31,7 @@ with_seq AS (
     FROM district_quarter dq
 ),
 
+-- 전년동기 대비 YoY 계산 + 500만원 미만 이상치 제외
 with_yoy AS (
     SELECT
         w.*,
@@ -41,6 +45,7 @@ with_yoy AS (
     FROM with_seq w
 ),
 
+-- 윈저화: 분기별 1%/99% 지점 계산
 pctile_bounds AS (
     SELECT 기준_년분기_코드, 매출_YoY_원본,
            PERCENT_RANK() OVER (PARTITION BY 기준_년분기_코드 ORDER BY 매출_YoY_원본) AS pr
@@ -54,6 +59,7 @@ p1_p99 AS (
     FROM pctile_bounds
     GROUP BY 기준_년분기_코드
 ),
+-- 윈저화 적용(clip)
 with_winsorized AS (
     SELECT
         w.*,
@@ -67,6 +73,7 @@ with_winsorized AS (
     LEFT JOIN p1_p99 b ON w.기준_년분기_코드 = b.기준_년분기_코드
 ),
 
+-- 최근4분기 매출합
 with_rolling AS (
     SELECT
         w.*,
@@ -76,12 +83,14 @@ with_rolling AS (
         ) AS 최근4분기_매출합
     FROM with_winsorized w
 ),
+-- 직전4분기 매출합
 with_prev4 AS (
     SELECT
         w.*,
         LAG(최근4분기_매출합, 4) OVER (PARTITION BY 상권_코드 ORDER BY 분기순번) AS 직전4분기_매출합
     FROM with_rolling w
 ),
+-- 누적4분기 성장률(CAGR) 계산
 with_cagr AS (
     SELECT
         w.*,
@@ -93,6 +102,7 @@ with_cagr AS (
     WHERE 분기순번 >= 8
 ),
 
+-- 규모필터·CAGR 동일분기 내 순위 산출
 with_rank AS (
     SELECT
         w.*,
@@ -102,6 +112,7 @@ with_rank AS (
     WHERE 직전4분기_매출합 IS NOT NULL AND 누적4분기_성장률 IS NOT NULL
 )
 
+-- 규모필터+CAGR 상위20% 충족 시 활성화 라벨 부여
 SELECT
     상권_코드,
     상권_코드_명,
