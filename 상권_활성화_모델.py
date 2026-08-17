@@ -10,16 +10,6 @@ from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_sco
 pd.set_option("display.max_columns", None)
 pd.set_option("display.width", 220)
 
-# 최종 모델에 실제 채택된 6개 피처
-FINAL_FEATURES = [
-    "매출_저점대비_반등폭",
-    "매출_모멘텀",
-    "분기별_총_유동인구_수",
-    "구매전환율_100cap(%)",
-    "저녁심야_매출_비중(%)",
-    "2030대_소비_비중",
-]
-
 # t검정 탐색 대상 후보 피처 전체(18개)
 ALL_CANDIDATE_FEATURES = {
     "매출_YoY_윈저화(%)": "매출 YoY(윈저화)",
@@ -126,12 +116,25 @@ def predict_apply_target(master_df, model, scaler):
     return ranking[["순위", "상권_코드", "상권_코드_명", "예측확률"] + FINAL_FEATURES]
 
 
+# 최종 모델 채택 피처(6개) — t검정 결과(Bonferroni 유의 + Cohen's d 상위권) 기반 선정.
+# 단, 매출_YoY_윈저화(%)는 매출_모멘텀/매출_저점대비_반등폭과 동일 계열(YoY 파생)이라
+# 다중공선성 우려로 제외하고, 그다음 순위인 2030대_소비_비중을 채택함 (사람 판단 개입).
+FINAL_FEATURES = [
+    "매출_저점대비_반등폭",
+    "매출_모멘텀",
+    "분기별_총_유동인구_수",
+    "구매전환율_100cap(%)",
+    "저녁심야_매출_비중(%)",
+    "2030대_소비_비중",
+]
+
+
 if __name__ == "__main__":
     # 1) 데이터 로드
     print("1) 학습용 이력 마스터 데이터 로드...")
     full = load_historical_data()
 
-    # 2) t검정 + 모델 학습/평가
+    # 2) t검정 (결과를 참고해 위 FINAL_FEATURES를 선정함) + 모델 학습/평가
     print("2) 통계 검증(t-검정) 및 모델 학습...")
     train_for_ttest = full[(full["data_split"] == "train") & (full["활성화_현재상태"] == 0)]
     ttest_result = run_ttest(train_for_ttest)
