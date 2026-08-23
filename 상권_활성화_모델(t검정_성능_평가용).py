@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# [평가용] 5개 최종 피처 모델 - AUC/F1 성능 측정용 (train만 학습, test는 순수 평가)
 import os
 import pandas as pd
 import numpy as np
@@ -9,6 +10,13 @@ from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_sco
 
 pd.set_option("display.max_columns", None)
 pd.set_option("display.width", 220)
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) if "__file__" in globals() else os.getcwd()
+
+# 분기 분할 경계 (분기순번)
+TRAIN_Q = range(8, 14)   # 8~13
+TEST_Q = range(14, 18)   # 14~17
+APPLY_Q = range(18, 22)  # 18~21
 
 # t검정 탐색 대상 후보 피처 전체(18개)
 ALL_CANDIDATE_FEATURES = {
@@ -43,10 +51,15 @@ def cohens_d(a, b):
 
 # 마스터 학습데이터 로드 및 컬럼명 정리
 def load_historical_data():
-    target_file = "데이터_최종_활성화라벨_CAGR규모필터_4.xlsx"
+    target_file = os.path.join(BASE_DIR, "데이터_최종_활성화라벨_CAGR규모필터_5.xlsx")
     if not os.path.exists(target_file):
-        files = [f for f in os.listdir('.') if f.endswith('.xlsx')]
-        target_file = [f for f in files if '활성화라벨' in f][0]
+        files = [f for f in os.listdir(BASE_DIR) if f.endswith(".xlsx")]
+        matched_files = [os.path.join(BASE_DIR, f) for f in files if "활성화라벨" in f]
+        if not matched_files:
+            raise FileNotFoundError(
+                f"작업 경로('{BASE_DIR}') 내에 '활성화라벨'이 포함된 엑셀(.xlsx) 파일이 존재하지 않습니다."
+            )
+        target_file = matched_files[0]
 
     master = pd.read_excel(target_file, sheet_name="최종_모델링데이터")
     master = master.rename(columns={
@@ -81,10 +94,10 @@ def run_ttest(train_df, label_col="활성화_라벨_1년후"):
     return pd.DataFrame(results)
 
 
-# train으로 로지스틱회귀 학습, test로 AUC/F1 평가
+# train(8~13) 학습, test(14~17) 평가
 def train_and_evaluate(df, label_col="활성화_라벨_1년후"):
-    train = df[(df["data_split"] == "train") & (df["활성화_현재상태"] == 0)]
-    test = df[(df["data_split"] == "test") & (df["활성화_현재상태"] == 0)]
+    train = df[(df["분기순번"].isin(TRAIN_Q)) & (df["활성화_현재상태"] == 0)]
+    test = df[(df["분기순번"].isin(TEST_Q)) & (df["활성화_현재상태"] == 0)]
 
     def fit_eval(feats, tr, ev):
         tr_c = tr[feats + [label_col]].dropna()
@@ -102,9 +115,9 @@ def train_and_evaluate(df, label_col="활성화_라벨_1년후"):
     return model_official, sc_official, auc_test_official, f1_test_official
 
 
-# 현재 비활성화 상권(apply 대상) 예측확률 산출 및 순위화
+# apply(18~21) 예측 (참고용, 실전 배포는 3번 파일)
 def predict_apply_target(master_df, model, scaler):
-    candidates = master_df[master_df["data_split"] == "apply_최종예측대상"].copy()
+    candidates = master_df[(master_df["분기순번"].isin(APPLY_Q)) & (master_df["활성화_현재상태"] == 0)].copy()
     candidates = candidates.dropna(subset=FINAL_FEATURES)
 
     X_new = scaler.transform(candidates[FINAL_FEATURES])
@@ -115,29 +128,23 @@ def predict_apply_target(master_df, model, scaler):
     return ranking[["순위", "상권_코드", "상권_코드_명", "예측확률"] + FINAL_FEATURES]
 
 
-# 최종 모델 채택 피처(6개) — t검정 결과(Bonferroni 유의 + Cohen's d 상위권) 기반 선정.
-# 단, 매출_YoY_윈저화(%)는 매출_모멘텀/매출_저점대비_반등폭과 동일 계열(YoY 파생)이라
-# 다중공선성 우려로 제외하고, 그다음 순위인 2030대_소비_비중을 채택함 (사람 판단 개입).
+# 최종 모델 채택 피처(5개)
 FINAL_FEATURES = [
     "매출_저점대비_반등폭",
     "매출_모멘텀",
-    "분기별_총_유동인구_수",
-    "구매전환율_100cap(%)",
-    "저녁심야_매출_비중(%)",
+    "주말_매출_비중(%)",
     "2030대_소비_비중",
+    "분기별_총_유동인구_수",
 ]
 
-
 if __name__ == "__main__":
-    # 1) 데이터 로드
     print("1) 학습용 이력 마스터 데이터 로드...")
     full = load_historical_data()
 
-    # 2) t검정 (결과를 참고해 위 FINAL_FEATURES를 선정함) + 모델 학습/평가
     print("2) 통계 검증(t-검정) 및 모델 학습...")
-    train_for_ttest = full[(full["data_split"] == "train") & (full["활성화_현재상태"] == 0)]
+    train_for_ttest = full[(full["분기순번"].isin(TRAIN_Q)) & (full["활성화_현재상태"] == 0)]
     ttest_result = run_ttest(train_for_ttest)
-    ttest_result.to_excel("t검정_결과.xlsx", index=False)
+    ttest_result.to_excel(os.path.join(BASE_DIR, "t검정_결과.xlsx"), index=False)
 
     print("\n=== t-검정 결과 (Bonferroni 보정 기준 유의한 피처) ===")
     print(ttest_result[ttest_result["유의"] == "Y"].sort_values("p-value(Bonferroni)").to_string(index=False))
@@ -145,15 +152,14 @@ if __name__ == "__main__":
     print(ttest_result.sort_values("p-value(Bonferroni)").to_string(index=False))
 
     model, scaler, auc_test, f1_test = train_and_evaluate(full)
-    print(f"\n=== 최종 모델(FINAL_FEATURES) test셋 성능 ===")
+    print(f"\n=== 최종 모델(FINAL_FEATURES) test셋(분기순번 14~17) 성능 ===")
     print(f"AUC: {auc_test:.4f}")
     print(f"F1 : {f1_test:.4f}")
 
-    # 3) 예측 및 저장
-    print("3) apply_최종예측대상 예측 순위 산출 중...")
+    print("3) apply(분기순번 18~21) 예측 순위 산출 중... (참고용)")
     ranking_df = predict_apply_target(full, model, scaler)
 
-    ranking_df.to_excel("예측_순위표.xlsx", index=False)
+    ranking_df.to_excel(os.path.join(BASE_DIR, "예측_순위표.xlsx"), index=False)
     print("\n=== 활성화 가능성 예측 Top 5 상권 ===")
     print(ranking_df[["순위", "상권_코드_명", "예측확률"]].head().to_string(index=False))
 
