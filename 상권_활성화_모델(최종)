@@ -8,8 +8,12 @@ from sklearn.preprocessing import StandardScaler
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) if "__file__" in globals() else os.getcwd()
 
-FEATURES = ["매출_저점대비_반등폭", "매출_모멘텀", "주말_매출_비중(%)",
-            "2030대_소비_비중", "분기별_총_유동인구_수"]
+FEATURES = [
+    "매출_YoY_윈저화(%)",
+    "매출_모멘텀",
+    "2030대_소비_비중",
+    "전환율_%p변화"
+]
 CURRENT_COL = "활성화_현재상태"
 LABEL_COL = "활성화_라벨_1년후"
 
