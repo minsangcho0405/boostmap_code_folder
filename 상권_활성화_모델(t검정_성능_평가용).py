@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# [평가용] 5개 최종 피처 모델 - AUC/F1 성능 측정용 (train만 학습, test는 순수 평가)
+# [평가용] 최종 피처 모델 - AUC/F1 성능 측정용 (train만 학습, test는 순수 평가)
 import os
 import pandas as pd
 import numpy as np
@@ -128,13 +128,12 @@ def predict_apply_target(master_df, model, scaler):
     return ranking[["순위", "상권_코드", "상권_코드_명", "예측확률"] + FINAL_FEATURES]
 
 
-# 최종 모델 채택 피처(5개)
+# 최종 모델 채택 피처
 FINAL_FEATURES = [
-    "매출_저점대비_반등폭",
+    "매출_YoY_윈저화(%)",
     "매출_모멘텀",
-    "주말_매출_비중(%)",
     "2030대_소비_비중",
-    "분기별_총_유동인구_수",
+    "전환율_%p변화"
 ]
 
 if __name__ == "__main__":
