@@ -277,7 +277,7 @@ final AS (
 SELECT *
 FROM final
 ORDER BY 상권_코드, 분기순번
-INTO OUTFILE '/path/to/상권_활성화_전처리_결과.csv'
+INTO OUTFILE '/path/to/데이터_최종_활성화라벨_CAGR규모필터_5.csv'
 CHARACTER SET utf8mb4
 FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
 LINES TERMINATED BY '\n';
