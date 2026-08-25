@@ -14,7 +14,7 @@
 - 행정구역: 서울시 상권분석서비스(영역-상권)
   https://data.seoul.go.kr/dataList/OA-15560/S/1/datasetView.do
 """
-
+import os
 import pandas as pd
 
 # ── 파일 경로 ──────────────────────────────────────────────
