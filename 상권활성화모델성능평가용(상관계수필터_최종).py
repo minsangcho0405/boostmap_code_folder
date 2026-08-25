@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # [평가용] 최종 피처 모델 - AUC/F1 성능 측정용 (train만 학습, test는 순수 평가)
-# [개선판] 로지스틱 -> LightGBM(비선형 포착) 교체 + train 내부 CV로
+# LightGBM(비선형 포착) + train 내부 CV로
 #          AUC를 최대화하는 피처 조합을 자동 탐색(test 데이터는 절대 들여다보지 않음)
 import os
 import re
