@@ -288,7 +288,7 @@ def find_best_feature_combination(df, candidate_features, label_col,
 # 1) 데이터 로드
 # ============================================================
 master = pd.read_excel(
-    os.path.join(BASE_DIR, "데이터_최종_활성화라벨_CAGR규모필터_6.xlsx"),
+    os.path.join(BASE_DIR, "데이터_최종_활성화라벨_CAGR규모필터_5.xlsx"),
     sheet_name="최종_모델링데이터",
 )
 
