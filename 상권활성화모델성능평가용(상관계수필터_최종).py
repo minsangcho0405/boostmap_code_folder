@@ -175,7 +175,7 @@ def permutation_test(x, y, n_permutations=1000, random_state=42):
 
 # 마스터 학습데이터 로드 및 컬럼명 정리
 def load_historical_data():
-    target_file = os.path.join(BASE_DIR, "데이터_최종_활성화라벨_CAGR규모필터_6.xlsx")
+    target_file = os.path.join(BASE_DIR, "데이터_최종_활성화라벨_CAGR규모필터_5.xlsx")
     if not os.path.exists(target_file):
         files = [f for f in os.listdir(BASE_DIR) if f.endswith(".xlsx")]
         matched_files = [os.path.join(BASE_DIR, f) for f in files if "활성화라벨" in f]
