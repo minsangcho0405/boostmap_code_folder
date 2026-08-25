@@ -12,7 +12,7 @@ WITH filtered_raw AS (
         `시간대_21~24_매출_금액`,
         주말_매출_금액,
         서비스_업종_코드_명,
-        CASE WHEN 서비스_업종_코드_명 IN ('커피-음료', '호프-간이주점', '제과점') THEN 당월_매출_금액 ELSE 0 END AS 트렌디_매출_금액
+        CASE WHEN 서비스_업종_코드_명 IN ('커피-음료', '제과점', '패스트푸드점') THEN 당월_매출_금액 ELSE 0 END AS 트렌디_매출_금액
     FROM raw_sales
     WHERE 서비스_업종_코드_명 IN (
         '한식음식점','중식음식점','일식음식점','양식음식점','분식전문점',
@@ -272,6 +272,12 @@ final AS (
 )
 
 -- 18. 최종 대상 필터링 및 출력
+-- CSV로 바로 저장 (경로는 실제 환경에 맞게 수정, secure_file_priv 제한 있으면
+-- Workbench 결과 그리드에서 수동 Export로 대체)
 SELECT *
 FROM final
-ORDER BY 상권_코드, 분기순번;
+ORDER BY 상권_코드, 분기순번
+INTO OUTFILE '/path/to/상권_활성화_전처리_결과.csv'
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
