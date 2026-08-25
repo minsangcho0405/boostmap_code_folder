@@ -94,45 +94,44 @@ CREATE TABLE IF NOT EXISTS raw_footfall (
 );
 
 -- 2. CSV 데이터 임포트
-LOAD DATA INFILE '/path/to/서울시_상권분석서비스(추정매출-상권)_2021년.csv'
+LOAD DATA LOCAL INFILE '/Users/mac/Downloads/서울시_상권활성화_데이터셋(최종) 3/서울시_상권분석서비스(추정매출-상권)_2021년.csv'
 INTO TABLE raw_sales
 CHARACTER SET euckr
 FIELDS TERMINATED BY ',' ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 LINES;
 
-LOAD DATA INFILE '/path/to/서울시_상권분석서비스(추정매출-상권)_2022년.csv'
+LOAD DATA LOCAL INFILE '/Users/mac/Downloads/서울시_상권활성화_데이터셋(최종) 3/서울시_상권분석서비스(추정매출-상권)_2022년.csv'
 INTO TABLE raw_sales
 CHARACTER SET euckr
 FIELDS TERMINATED BY ',' ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 LINES;
 
-LOAD DATA INFILE '/path/to/서울시_상권분석서비스(추정매출-상권)_2023년.csv'
+LOAD DATA LOCAL INFILE '/Users/mac/Downloads/서울시_상권활성화_데이터셋(최종) 3/서울시_상권분석서비스(추정매출-상권)_2023년.csv'
 INTO TABLE raw_sales
 CHARACTER SET euckr
 FIELDS TERMINATED BY ',' ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 LINES;
 
-LOAD DATA INFILE '/path/to/서울시 상권분석서비스(추정매출-상권)_2024년.csv'
+LOAD DATA LOCAL INFILE '/Users/mac/Downloads/서울시_상권활성화_데이터셋(최종) 3/서울시 상권분석서비스(추정매출-상권)_2024년.csv'
 INTO TABLE raw_sales
 CHARACTER SET euckr
 FIELDS TERMINATED BY ',' ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 LINES;
 
-LOAD DATA INFILE '/path/to/서울시 상권분석서비스(추정매출-상권)_2025년+2026년_1분기.csv'
+LOAD DATA LOCAL INFILE '/Users/mac/Downloads/서울시_상권활성화_데이터셋(최종) 3/서울시 상권분석서비스(추정매출-상권)_2025년+2026년_1분기.csv'
 INTO TABLE raw_sales
 CHARACTER SET euckr
 FIELDS TERMINATED BY ',' ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 LINES;
 
-LOAD DATA INFILE '/path/to/서울시 상권분석서비스(길단위인구-상권).csv'
+LOAD DATA LOCAL INFILE '/Users/mac/Downloads/서울시_상권활성화_데이터셋(최종) 3/서울시 상권분석서비스(길단위인구-상권).csv'
 INTO TABLE raw_footfall
 CHARACTER SET euckr
 FIELDS TERMINATED BY ',' ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 LINES;
-
