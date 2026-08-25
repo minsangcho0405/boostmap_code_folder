@@ -12,7 +12,7 @@ WITH filtered_raw AS (
         `시간대_21~24_매출_금액`,
         주말_매출_금액,
         서비스_업종_코드_명,
-        CASE WHEN 서비스_업종_코드_명 IN ('커피-음료', '제과점', '패스트푸드점') THEN 당월_매출_금액 ELSE 0 END AS 트렌디_매출_금액
+        CASE WHEN 서비스_업종_코드_명 IN ('커피-음료', '호프-간이주점', '제과점') THEN 당월_매출_금액 ELSE 0 END AS 트렌디_매출_금액
     FROM raw_sales
     WHERE 서비스_업종_코드_명 IN (
         '한식음식점','중식음식점','일식음식점','양식음식점','분식전문점',
@@ -214,7 +214,6 @@ with_advanced_features AS (
 with_condition_flag AS (
     SELECT
         af.*,
-        af.`유동인구_YoY증가율(%)` AS `유동인구_YoY(%)`,
         CASE WHEN af.`유동인구_YoY증가율(%)` > 0 AND af.`전환율_%p변화` > 0 THEN 1 ELSE 0 END AS 조건_충족_여부
     FROM with_advanced_features af
 ),
@@ -266,7 +265,6 @@ final AS (
         w.`유동인구_YoY증가율(%)`,
         w.`유동인구_연속개선_분기수`,
         w.`주말비중_변화폭_2분기`,
-        w.`유동인구_YoY(%)`,
         w.`전환율_%p변화`,
         w.`조건_동시충족_직전분기`,
         w.`조건_동시충족_최근4분기_충족횟수`
