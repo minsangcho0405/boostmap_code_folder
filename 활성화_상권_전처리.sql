@@ -274,6 +274,7 @@ final AS (
 -- 18. 최종 대상 필터링 및 출력
 -- CSV로 바로 저장 (경로는 실제 환경에 맞게 수정, secure_file_priv 제한 있으면
 -- Workbench 결과 그리드에서 수동 Export로 대체)
+-- path/to는 파일 저장 희망 경로로 수정해 쿼리 실행
 SELECT *
 FROM final
 ORDER BY 상권_코드, 분기순번
